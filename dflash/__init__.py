@@ -1,3 +1,6 @@
+# Personal fork of z-lab/dflash
+# Tweaked __getattr__ to raise a more helpful error message with suggestions
+
 __all__ = [
     "DFlashDraftModel",
     "extract_context_feature",
@@ -21,4 +24,8 @@ def __getattr__(name):
             "sample": sample,
         }[name]
 
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    # Provide a helpful hint about what's actually available
+    raise AttributeError(
+        f"module {__name__!r} has no attribute {name!r}. "
+        f"Available names: {__all__}"
+    )
