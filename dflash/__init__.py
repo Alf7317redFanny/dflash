@@ -25,7 +25,10 @@ def __getattr__(name):
         }[name]
 
     # Provide a helpful hint about what's actually available
+    # Also include a note about common typos I keep making (e.g. 'extract_context_features' with an 's')
+    close_matches = [n for n in __all__ if name.lower() in n.lower() or n.lower() in name.lower()]
+    hint = f" Did you mean: {close_matches}?" if close_matches else ""
     raise AttributeError(
-        f"module {__name__!r} has no attribute {name!r}. "
+        f"module {__name__!r} has no attribute {name!r}.{hint} "
         f"Available names: {__all__}"
     )
