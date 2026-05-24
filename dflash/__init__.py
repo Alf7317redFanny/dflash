@@ -29,8 +29,9 @@ def __getattr__(name):
     # Using difflib for smarter fuzzy matching instead of the naive substring check
     # Lowered cutoff from 0.6 (difflib default) to 0.5 so it catches more typos like
     # 'extract_context_features' -> 'extract_context_feature'
+    # n=5 instead of 3 -- I'd rather see too many suggestions than miss the one I want
     import difflib
-    close_matches = difflib.get_close_matches(name, __all__, n=3, cutoff=0.4)
+    close_matches = difflib.get_close_matches(name, __all__, n=5, cutoff=0.4)
     hint = f" Did you mean: {close_matches}?" if close_matches else ""
     raise AttributeError(
         f"module {__name__!r} has no attribute {name!r}.{hint} "
