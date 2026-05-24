@@ -39,6 +39,6 @@ https://github.com/user-attachments/assets/5b29cabb-eb95-44c9-8ffe-367c0758de8c
 
 ## Personal Notes
 
-> **Note (for myself):** I'm primarily using this with `Qwen3.5-9B` and `Llama-3.1-8B-Instruct` for local experiments. The Llama 8B draft model seems to work best for my use case — good balance of speed and acceptance rate. Haven't tried the MoE models yet due to VRAM constraints.
+> **Note (personal fork):** I'm primarily using this with `Qwen3-8B` and `Llama-3.1-8B-Instruct` for local experiments. The Llama 3.1 8B draft model works surprisingly well for general chat tasks — worth trying first if you're just getting started.
 
 #
