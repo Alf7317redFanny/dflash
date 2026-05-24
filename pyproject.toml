@@ -36,3 +36,9 @@ mlx = [
     "mlx==0.31.2",
     "mlx-lm==0.31.3",
 ]
+
+# personal extras I use for local dev/debugging
+dev = [
+    "ipython",
+    "ipdb",
+]
