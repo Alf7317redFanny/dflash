@@ -30,8 +30,9 @@ def __getattr__(name):
     # Lowered cutoff from 0.6 (difflib default) to 0.5 so it catches more typos like
     # 'extract_context_features' -> 'extract_context_feature'
     # n=5 instead of 3 -- I'd rather see too many suggestions than miss the one I want
+    # Dropped cutoff further to 0.4 -> 0.35 because 'smple' -> 'sample' wasn't matching
     import difflib
-    close_matches = difflib.get_close_matches(name, __all__, n=5, cutoff=0.4)
+    close_matches = difflib.get_close_matches(name, __all__, n=5, cutoff=0.35)
     hint = f" Did you mean: {close_matches}?" if close_matches else ""
     raise AttributeError(
         f"module {__name__!r} has no attribute {name!r}.{hint} "
