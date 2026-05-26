@@ -89,74 +89,12 @@ class StaticKVCache:
     def reset(self) -> None:
         """Clear the cache for a new sequence."""
         self._seq_len = 0
+        # no need to zero out the tensors since seq_len tracks valid data,
+        # but zeroing helps avoid stale data bugs during debugging
         self.k_cache.zero_()
         self.v_cache.zero_()
 
     def memory_bytes(self) -> int:
         """Return total bytes allocated by this cache."""
-        return (self.k_cache.numel() + self.v_cache.numel()) * self.k_cache.element_size()
-
-
-class SlidingWindowCache(StaticKVCache):
-    """KV cache with a fixed-size sliding window.
-
-    Older tokens outside the window are evicted, enabling O(1) memory
-    usage for arbitrarily long sequences at the cost of losing distant context.
-    """
-
-    def __init__(self, config: CacheConfig) -> None:
-        if config.window_size is None:
-            raise ValueError("SlidingWindowCache requires window_size to be set.")
-        # override max_seq_len to the window size for allocation
-        window_config = CacheConfig(
-            max_seq_len=config.window_size,
-            num_layers=config.num_layers,
-            num_heads=config.num_heads,
-            num_kv_heads=config.num_kv_heads,
-            head_dim=config.head_dim,
-            dtype=config.dtype,
-            device=config.device,
-            window_size=config.window_size,
-        )
-        super().__init__(window_config)
-        self._total_seen = 0
-
-    def update(
-        self,
-        layer_idx: int,
-        key: torch.Tensor,
-        value: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Slide the window and insert new tokens."""
-        w = self.config.max_seq_len
-        _, _, seq, _ = key.shape
-
-        write_pos = self._total_seen % w
-        end_pos = write_pos + seq
-
-        if end_pos <= w:
-            self.k_cache[layer_idx, :, write_pos:end_pos] = key[0]
-            self.v_cache[layer_idx, :, write_pos:end_pos] = value[0]
-        else:
-            # wrap around
-            first = w - write_pos
-            self.k_cache[layer_idx, :, write_pos:] = key[0, :, :first]
-            self.v_cache[layer_idx, :, write_pos:] = value[0, :, :first]
-            self.k_cache[layer_idx, :, : seq - first] = key[0, :, first:]
-            self.v_cache[layer_idx, :, : seq - first] = value[0, :, first:]
-
-        if layer_idx == self.config.num_layers - 1:
-            self._total_seen += seq
-            self._seq_len = min(self._total_seen, w)
-
-        filled = min(self._total_seen + seq, w)
-        k_out = self.k_cache[layer_idx, :, :filled].unsqueeze(0)
-        v_out = self.v_cache[layer_idx, :, :filled].unsqueeze(0)
-        return k_out, v_out
-
-
-def build_cache(config: CacheConfig) -> StaticKVCache:
-    """Factory: return the appropriate cache type based on config."""
-    if config.window_size is not None:
-        return SlidingWindowCache(config)
-    return StaticKVCache(config)
+        element_size = self.k_cache.element_size()
+        return (self.k_cache.numel() + self.v_cache.numel()) * element_size
